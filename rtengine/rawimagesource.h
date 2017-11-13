@@ -160,7 +160,6 @@ public:
     }
 
     void        getFullSize (int& w, int& h, int tr = TR_NONE);
-    void        getSize     (const PreviewProps &pp, int& w, int& h);
     int         getRotateDegree() const
     {
         return ri->get_rotateDegree();

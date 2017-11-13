@@ -1495,14 +1495,6 @@ void RawImageSource::getFullSize (int& w, int& h, int tr)
 
 //%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-void RawImageSource::getSize (const PreviewProps &pp, int& w, int& h)
-{
-    w = pp.getWidth() / pp.getSkip() + (pp.getWidth() % pp.getSkip() > 0);
-    h = pp.getHeight() / pp.getSkip() + (pp.getHeight() % pp.getSkip() > 0);
-}
-
-//%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
 void RawImageSource::hflip (Imagefloat* image)
 {
     image->hflip();

@@ -1046,6 +1046,20 @@ void ProcParams::cleanup ()
     WBParams::cleanup();
 }
 
+bool ProcParams::checkNeedFullImage ()
+{
+    return fattal.enabled; // agriggio - maybe we can do this for wavelets too?
+}
+
+bool ProcParams::checkNeedLargerCropForLCPDistortion (int fw, int fh, int x, int y, int w, int h)
+{
+    if (x == 0 && y == 0 && w == fw && h == fh) {
+        return false;
+    }
+
+    return (lensProf.useDist && (lensProf.useLensfun() || lensProf.useLcp()));
+}
+
 ProcParams* ProcParams::create ()
 {
 

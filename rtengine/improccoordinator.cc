@@ -33,7 +33,7 @@ namespace rtengine
 extern const Settings* settings;
 
 ImProcCoordinator::ImProcCoordinator ()
-    : orig_prev (nullptr), oprevi (nullptr), oprevl (nullptr), nprevl (nullptr), previmg (nullptr), workimg (nullptr),
+    : fattal(nullptr), orig_prev (nullptr), oprevf (nullptr), oprevi (nullptr), oprevl (nullptr), nprevl (nullptr), previmg (nullptr), workimg (nullptr),
       ncie (nullptr), imgsrc (nullptr), shmap (nullptr), lastAwbEqual (0.), lastAwbTempBias (0.0), ipf (&params, true), monitorIntent (RI_RELATIVE),
       softProof (false), gamutCheck (false), scale (10), highDetailPreprocessComputed (false), highDetailRawComputed (false),
       allocated (false), bwAutoR (-9000.f), bwAutoG (-9000.f), bwAutoB (-9000.f), CAMMean (NAN),
@@ -112,6 +112,12 @@ ImProcCoordinator::~ImProcCoordinator ()
     mProcessing.unlock();
     freeAll ();
 
+    // not freed in freeAll, for optimization purpose (doesn't follow scaling rules)
+    if (fattal) {
+        delete fattal;
+    }
+    fattal = nullptr;
+
     std::vector<Crop*> toDel = crops;
 
     for (size_t i = 0; i < toDel.size(); i++) {
@@ -130,12 +136,11 @@ DetailedCrop* ImProcCoordinator::createCrop  (::EditDataProvider *editDataProvid
 
 
 // todo: bitmask containing desired actions, taken from changesSinceLast
-// cropCall: calling crop, used to prevent self-updates  ...doesn't seem to be used
-void ImProcCoordinator::updatePreviewImage (int todo, Crop* cropCall)
+void ImProcCoordinator::updatePreviewImage (int todo)
 {
 
     MyMutex::MyLock processingLock (mProcessing);
-    int numofphases = 14;
+    int numofphases = 12;
     int readyphase = 0;
 
     bwAutoR = bwAutoG = bwAutoB = -9000.f;
@@ -154,11 +159,12 @@ void ImProcCoordinator::updatePreviewImage (int todo, Crop* cropCall)
 
     // Check if any detail crops need high detail. If not, take a fast path short cut
     if (!highDetailNeeded) {
-        for (size_t i = 0; i < crops.size(); i++)
+        for (size_t i = 0; i < crops.size(); i++) {
             if (crops[i]->get_skip() == 1 ) {  // skip=1 -> full resolution
                 highDetailNeeded = true;
                 break;
             }
+        }
     }
 
     RAWParams rp = params.raw;
@@ -181,8 +187,6 @@ void ImProcCoordinator::updatePreviewImage (int todo, Crop* cropCall)
         rp.xtranssensor.ccSteps = 0;
         //rp.deadPixelFilter = rp.hotPixelFilter = false;
     }
-
-    progress ("Applying white balance, color correction & sRGB conversion...", 100 * readyphase / numofphases);
 
     if (frameCountListener) {
         frameCountListener->FrameCountChanged (imgsrc->getFrameCount(), params.raw.bayersensor.imageNum);
@@ -223,6 +227,8 @@ void ImProcCoordinator::updatePreviewImage (int todo, Crop* cropCall)
             || ( params.toneCurve.hrenabled && params.toneCurve.method != "Color" && imgsrc->isRGBSourceModified())
             || (!params.toneCurve.hrenabled && params.toneCurve.method == "Color" && imgsrc->isRGBSourceModified())) {
 
+        progress ("Demosaicing...", 100 * readyphase / numofphases);
+
         if (settings->verbose) {
             if (imgsrc->getSensorType() == ST_BAYER) {
                 printf ("Demosaic Bayer image n.%d using method: %s\n", rp.bayersensor.imageNum + 1, rp.bayersensor.method.c_str());
@@ -248,6 +254,7 @@ void ImProcCoordinator::updatePreviewImage (int todo, Crop* cropCall)
             imgsrc->retinexPrepareBuffers (params.icm, params.retinex, conversionBuffer, lhist16RETI);
         }
     }
+    readyphase++;
 
     if ((todo & (M_RETINEX | M_INIT)) && params.retinex.enabled) {
         bool dehacontlutili = false;
@@ -255,6 +262,8 @@ void ImProcCoordinator::updatePreviewImage (int todo, Crop* cropCall)
         bool useHsl = false;
         LUTf cdcurve (65536, 0);
         LUTf mapcurve (65536, 0);
+
+        progress ("Retinex...", 100 * readyphase / numofphases);
 
         imgsrc->retinexPrepareCurves (params.retinex, cdcurve, mapcurve, dehatransmissionCurve, dehagaintransmissionCurve, dehacontlutili, mapcontlutili, useHsl, lhist16RETI, histLRETI);
         float minCD, maxCD, mini, maxi, Tmean, Tsigma, Tmin, Tmax;
@@ -264,7 +273,7 @@ void ImProcCoordinator::updatePreviewImage (int todo, Crop* cropCall)
             dehaListener->minmaxChanged (maxCD, minCD, mini, maxi, Tmean, Tsigma, Tmin, Tmax);
         }
     }
-
+    readyphase++;
 
     // Updating toneCurve.hrenabled if necessary
     // It has to be done there, because the next 'if' statement will use the value computed here
@@ -280,58 +289,65 @@ void ImProcCoordinator::updatePreviewImage (int todo, Crop* cropCall)
         }
     }
 
-    if (todo & (M_INIT | M_LINDENOISE)) {
+    Imagefloat *baseCrop = orig_prev;
+
+    if (todo & (M_INIT | M_LINDENOISE | M_HDR)) {
+        progress ("Applying WB, color correction & sRGB conversion...", 100 * readyphase / numofphases);
+
         MyMutex::MyLock initLock (minit); // Also used in crop window
 
-        imgsrc->HLRecovery_Global ( params.toneCurve); // this handles Color HLRecovery
+        if (todo & M_INIT) {
+            imgsrc->HLRecovery_Global (params.toneCurve); // this handles Color HLRecovery
 
 
-        if (settings->verbose) {
-            printf ("Applying white balance, color correction & sRBG conversion...\n");
-        }
-
-        currWB = ColorTemp (params.wb.temperature, params.wb.green, params.wb.equal, params.wb.method);
-
-        if (params.wb.method == "Camera") {
-            currWB = imgsrc->getWB ();
-        } else if (params.wb.method == "Auto") {
-            if (lastAwbEqual != params.wb.equal || lastAwbTempBias != params.wb.tempBias) {
-                double rm, gm, bm;
-                imgsrc->getAutoWBMultipliers (rm, gm, bm);
-
-                if (rm != -1.) {
-                    autoWB.update (rm, gm, bm, params.wb.equal, params.wb.tempBias);
-                    lastAwbEqual = params.wb.equal;
-                    lastAwbTempBias = params.wb.tempBias;
-                } else {
-                    lastAwbEqual = -1.;
-                    lastAwbTempBias = 0.0;
-                    autoWB.useDefaults (params.wb.equal);
-                }
-
-                //double rr,gg,bb;
-                //autoWB.getMultipliers(rr,gg,bb);
+            if (settings->verbose) {
+                printf ("Applying white balance, color correction & sRBG conversion...\n");
             }
 
-            currWB = autoWB;
+            currWB = ColorTemp (params.wb.temperature, params.wb.green, params.wb.equal, params.wb.method);
+
+            if (params.wb.method == "Camera") {
+                currWB = imgsrc->getWB ();
+            } else if (params.wb.method == "Auto") {
+                if (lastAwbEqual != params.wb.equal || lastAwbTempBias != params.wb.tempBias) {
+                    double rm, gm, bm;
+                    imgsrc->getAutoWBMultipliers (rm, gm, bm);
+
+                    if (rm != -1.) {
+                        autoWB.update (rm, gm, bm, params.wb.equal, params.wb.tempBias);
+                        lastAwbEqual = params.wb.equal;
+                        lastAwbTempBias = params.wb.tempBias;
+                    } else {
+                        lastAwbEqual = -1.;
+                        lastAwbTempBias = 0.0;
+                        autoWB.useDefaults (params.wb.equal);
+                    }
+
+                    //double rr,gg,bb;
+                    //autoWB.getMultipliers(rr,gg,bb);
+                }
+
+                currWB = autoWB;
+            }
+
+            params.wb.temperature = currWB.getTemp ();
+            params.wb.green = currWB.getGreen ();
+
+            if (params.wb.method == "Auto" && awbListener) {
+                awbListener->WBChanged (params.wb.temperature, params.wb.green);
+            }
         }
 
-        params.wb.temperature = currWB.getTemp ();
-        params.wb.green = currWB.getGreen ();
-
-        if (params.wb.method == "Auto" && awbListener) {
-            awbListener->WBChanged (params.wb.temperature, params.wb.green);
-        }
 
         int tr = getCoarseBitMask (params.coarse);
 
         imgsrc->getFullSize (fw, fh, tr);
 
         // Will (re)allocate the preview's buffers
-        setScale (scale);
-        PreviewProps pp (0, 0, fw, fh, scale);
+        setScale (scale, params.checkNeedFullImage());
+        PreviewProps pp (0, 0, fw, fh, params.checkNeedFullImage() ? 1 : scale);
         // Tells to the ImProcFunctions' tools what is the preview scale, which may lead to some simplifications
-        ipf.setScale (scale);
+        ipf.setScale (params.checkNeedFullImage() ? 1 : scale);
 
         imgsrc->getImage (currWB, tr, orig_prev, pp, params.toneCurve, params.icm, params.raw);
         denoiseInfoStore.valid = false;
@@ -382,53 +398,65 @@ void ImProcCoordinator::updatePreviewImage (int todo, Crop* cropCall)
 
         ipf.firstAnalysis (orig_prev, params, vhist16);
     }
-
     readyphase++;
 
-    progress ("Rotate / Distortion...", 100 * readyphase / numofphases);
-    // Remove transformation if unneeded
-    bool needstransform = ipf.needsTransform();
-
-    if (!needstransform && ! ((todo & (M_TRANSFORM | M_RGBCURVE))  && params.dirpyrequalizer.cbdlMethod == "bef" && params.dirpyrequalizer.enabled && !params.colorappearance.enabled) && orig_prev != oprevi) {
-        delete oprevi;
-        oprevi = orig_prev;
-    }
-
-    if ((needstransform || ((todo & (M_TRANSFORM | M_RGBCURVE))  && params.dirpyrequalizer.cbdlMethod == "bef" && params.dirpyrequalizer.enabled && !params.colorappearance.enabled)) ) {
-        if (!oprevi || oprevi == orig_prev) {
-            oprevi = new Imagefloat (pW, pH);
+    if (params.checkNeedFullImage()) {
+        if (todo & M_HDR) {
+            progress ("HDR tone mapping...", 100 * readyphase / numofphases);
+            if (!fattal) {
+                printf("***********  orig_prev: %d x %d\n", orig_prev->getWidth(), orig_prev->getHeight());
+                fattal = orig_prev->copy();  // at this stage, orig_prev is a full size image
+            }
+            ipf.ToneMapFattal02(fattal);
+            if (!oprevf) {
+                oprevf = new Imagefloat (pW, pH);
+            }
+            fattal->resizeImgTo<Imagefloat>(pW, pH, TypeInterpolation::TI_Bilinear, oprevf);
+            ipf.setScale(scale);
         }
-
-        if (needstransform)
-            ipf.transform (orig_prev, oprevi, 0, 0, 0, 0, pW, pH, fw, fh, 
-                           imgsrc->getMetaData(), imgsrc->getRotateDegree(), false);
-        else {
-            orig_prev->copyData (oprevi);
+    } else {
+        if (oprevf) {
+            delete oprevf;
+            oprevf = nullptr;
+        }
+        if (fattal) {
+            delete fattal;
+            fattal = nullptr;
         }
     }
+    if (oprevf) {
+        baseCrop = oprevf;
+    }
+    readyphase++;
 
-    if ((todo & M_RGBCURVE) && params.fattal.enabled) {
-        Imagefloat *fattalprev = oprevi->copy();
-        ipf.ToneMapFattal02(fattalprev);
-        if (oprevi != orig_prev) {
+    if (ipf.needsTransform()) {
+        if (todo & M_TRANSFORM) {
+            if (!oprevi) {
+                oprevi = new Imagefloat (pW, pH);
+            }
+            ipf.transform (baseCrop, oprevi, 0, 0, 0, 0, pW, pH, fw, fh, imgsrc->getMetaData(), imgsrc->getRotateDegree(), false);
+        }
+    } else {
+        if (oprevi) {
             delete oprevi;
+            oprevi = nullptr;
         }
-        oprevi = fattalprev;
-    } 
-
-    if ((todo & (M_TRANSFORM | M_RGBCURVE))  && params.dirpyrequalizer.cbdlMethod == "bef" && params.dirpyrequalizer.enabled && !params.colorappearance.enabled) {
-        const int W = oprevi->getWidth();
-        const int H = oprevi->getHeight();
-        LabImage labcbdl (W, H);
-        ipf.rgb2lab (*oprevi, labcbdl, params.icm.working);
-        ipf.dirpyrequalizer (&labcbdl, scale);
-        ipf.lab2rgb (labcbdl, *oprevi, params.icm.working);
+    }
+    if (oprevi) {
+        baseCrop = oprevi;
     }
 
+    if ((todo & (M_TRANSFORM | M_RGBCURVE)) && params.dirpyrequalizer.cbdlMethod == "bef" && params.dirpyrequalizer.enabled && !params.colorappearance.enabled) {
+        LabImage labcbdl (baseCrop->getWidth(), baseCrop->getHeight());
+        ipf.rgb2lab (*baseCrop, labcbdl, params.icm.working);
+        ipf.dirpyrequalizer (&labcbdl, scale);
+        ipf.lab2rgb (labcbdl, *baseCrop, params.icm.working);
+    }
     readyphase++;
-    progress ("Preparing shadow/highlight map...", 100 * readyphase / numofphases);
+
 
     if ((todo & M_BLURMAP) && params.sh.enabled) {
+        progress ("Preparing shadow/highlight map...", 100 * readyphase / numofphases);
         double radius = sqrt (double (pW * pW + pH * pH)) / 2.0;
         double shradius = params.sh.radius;
 
@@ -440,12 +468,10 @@ void ImProcCoordinator::updatePreviewImage (int todo, Crop* cropCall)
             shmap = new SHMap (pW, pH, true);
         }
 
-        shmap->update (oprevi, shradius, ipf.lumimul, params.sh.hq, scale);
+        shmap->update (baseCrop, shradius, ipf.lumimul, params.sh.hq, scale);
     }
-
-
-
     readyphase++;
+
 
     if (todo & M_AUTOEXP) {
         if (params.toneCurve.autoexp) {
@@ -461,9 +487,8 @@ void ImProcCoordinator::updatePreviewImage (int todo, Crop* cropCall)
         }
     }
 
-    progress ("Exposure curve & CIELAB conversion...", 100 * readyphase / numofphases);
-
     if ((todo & M_RGBCURVE) || (todo & M_CROP)) {
+        progress ("Exposure curve & CIELAB conversion...", 100 * readyphase / numofphases);
 //        if (hListener) oprevi->calcCroppedHistogram(params, scale, histCropped);
 
         //complexCurve also calculated pre-curves histogram depending on crop
@@ -512,7 +537,7 @@ void ImProcCoordinator::updatePreviewImage (int todo, Crop* cropCall)
         if (params.colorToning.enabled  && params.colorToning.autosat) { //for colortoning evaluation of saturation settings
             float moyS = 0.f;
             float eqty = 0.f;
-            ipf.moyeqt (oprevi, moyS, eqty);//return image : mean saturation and standard dev of saturation
+            ipf.moyeqt (baseCrop, moyS, eqty);//return image : mean saturation and standard dev of saturation
             //printf("moy=%f ET=%f\n", moyS,eqty);
             float satp = ((moyS + 1.5f * eqty) - 0.3f) / 0.7f; //1.5 sigma ==> 93% pixels with high saturation -0.3 / 0.7 convert to Hombre scale
 
@@ -567,7 +592,11 @@ void ImProcCoordinator::updatePreviewImage (int todo, Crop* cropCall)
             DCPProfile::ApplyState as;
             DCPProfile *dcpProf = imgsrc->getDCP (params.icm, currWB, as);
 
-            ipf.rgbProc (oprevi, oprevl, nullptr, hltonecurve, shtonecurve, tonecurve, shmap, params.toneCurve.saturation,
+            printf("baseCrop: %p, oprevl: %p\n", baseCrop, oprevl);
+            printf("baseCrop: %d x %d, oprevl: %d x %d\n", baseCrop->getWidth(), baseCrop->getHeight(), oprevl->W, oprevl->H);
+
+
+            ipf.rgbProc (baseCrop, oprevl, nullptr, hltonecurve, shtonecurve, tonecurve, shmap, params.toneCurve.saturation,
                          rCurve, gCurve, bCurve, colourToningSatLimit, colourToningSatLimitOpacity, ctColorCurve, ctOpacityCurve, opautili, clToningcurve, cl2Toningcurve, customToneCurve1, customToneCurve2, beforeToneCurveBW, afterToneCurveBW, rrm, ggm, bbm, bwAutoR, bwAutoG, bwAutoB, params.toneCurve.expcomp, params.toneCurve.hlcompr, params.toneCurve.hlcomprthresh, dcpProf, as, histToneCurve);
 
             if (params.blackwhite.enabled && params.blackwhite.autoc && abwListener) {
@@ -636,9 +665,9 @@ void ImProcCoordinator::updatePreviewImage (int todo, Crop* cropCall)
     }
 
     if (todo & (M_LUMINANCE + M_COLOR) ) {
+        progress ("Applying Color Boost...", 100 * readyphase / numofphases);
         nprevl->CopyFrom (oprevl);
 
-        progress ("Applying Color Boost...", 100 * readyphase / numofphases);
         //   ipf.MSR(nprevl, nprevl->W, nprevl->H, 1);
         histCCurve.clear();
         histLCurve.clear();
@@ -648,9 +677,9 @@ void ImProcCoordinator::updatePreviewImage (int todo, Crop* cropCall)
         if ((params.colorappearance.enabled && !params.colorappearance.tonecie) ||  (!params.colorappearance.enabled)) {
             ipf.EPDToneMap (nprevl, 5, scale);
         }
+        readyphase++;
 
         // for all treatments Defringe, Sharpening, Contrast detail , Microcontrast they are activated if "CIECAM" function are disabled
-        readyphase++;
 
         /* Issue 2785, disabled some 1:1 tools
                 if (scale==1) {
@@ -697,9 +726,9 @@ void ImProcCoordinator::updatePreviewImage (int todo, Crop* cropCall)
                 progress ("Pyramid wavelet...", 100 * readyphase / numofphases);
                 ipf.dirpyrequalizer (nprevl, scale);
                 //ipf.Lanczoslab (ip_wavelet(LabImage * lab, LabImage * dst, const procparams::EqualizerParams & eqparams), nprevl, 1.f/scale);
-                readyphase++;
             }
         }
+        readyphase++;
 
 
         wavcontlutili = false;
@@ -708,19 +737,20 @@ void ImProcCoordinator::updatePreviewImage (int todo, Crop* cropCall)
 
 
         if ((params.wavelet.enabled)) {
+            progress ("Wavelet...", 100 * readyphase / numofphases);
             WaveletParams WaveParams = params.wavelet;
             //      WaveParams.getCurves(wavCLVCurve, waOpacityCurveRG, waOpacityCurveBY);
             WaveParams.getCurves (wavCLVCurve, waOpacityCurveRG, waOpacityCurveBY, waOpacityCurveW, waOpacityCurveWL);
 
             int kall = 0;
-            progress ("Wavelet...", 100 * readyphase / numofphases);
             //  ipf.ip_wavelet(nprevl, nprevl, kall, WaveParams, wavCLVCurve, waOpacityCurveRG, waOpacityCurveBY, scale);
             ipf.ip_wavelet (nprevl, nprevl, kall, WaveParams, wavCLVCurve, waOpacityCurveRG, waOpacityCurveBY, waOpacityCurveW, waOpacityCurveWL, wavclCurve, wavcontlutili, scale);
-
         }
+        readyphase++;
 
 
         if (params.colorappearance.enabled) {
+            progress ("CIECAM...", 100 * readyphase / numofphases);
             //L histo  and Chroma histo for ciecam
             // histogram well be for Lab (Lch) values, because very difficult to do with J,Q, M, s, C
             int x1, y1, x2, y2;
@@ -803,8 +833,6 @@ void ImProcCoordinator::updatePreviewImage (int todo, Crop* cropCall)
             if (params.colorappearance.autoybscen && acListener && params.colorappearance.enabled) {
                 acListener->ybCamChanged ((int) yb);   //real value Yb scene
             }
-
-            readyphase++;
         } else {
             // CIECAM is disabled, we free up its image buffer to save some space
             if (ncie) {
@@ -821,6 +849,9 @@ void ImProcCoordinator::updatePreviewImage (int todo, Crop* cropCall)
                 CAMBrightCurveQ.reset();
             }
         }
+        readyphase++;
+    } else {
+        readyphase += 4;
     }
 
     // Update the monitor color transform if necessary
@@ -832,14 +863,18 @@ void ImProcCoordinator::updatePreviewImage (int todo, Crop* cropCall)
     }
 
     // process crop, if needed
-    for (size_t i = 0; i < crops.size(); i++)
-        if (crops[i]->hasListener () && cropCall != crops[i] ) {
-            crops[i]->update (todo);    // may call ourselves
+    if (!crops.empty()) {
+        progress (Glib::ustring::compose("Updating %1 preview(s)...", crops.size()), 100 * readyphase / numofphases);
+        for (size_t i = 0; i < crops.size(); i++) {
+            if (crops[i]->hasListener ()) {
+                crops[i]->update (todo);    // may call ourselves
+            }
         }
-
-    progress ("Conversion to RGB...", 100 * readyphase / numofphases);
+    }
+    readyphase++;
 
     if ((todo != CROP && todo != MINUPDATE) || (todo & M_MONITOR)) {
+        progress ("Conversion to RGB...", 100 * readyphase / numofphases);
         MyMutex::MyLock prevImgLock (previmg->getMutex());
 
         try {
@@ -869,8 +904,6 @@ void ImProcCoordinator::updatePreviewImage (int todo, Crop* cropCall)
         imageListener->imageReady (params.crop);
     }
 
-    readyphase++;
-
     if (hListener) {
         updateLRGBHistograms ();
         hListener->histogramChanged (histRed, histGreen, histBlue, histLuma, histToneCurve, histLCurve, histCCurve, /*histCLurve, histLLCurve,*/ histLCAM, histCCAM, histRedRaw, histGreenRaw, histBlueRaw, histChroma, histLRETI);
@@ -887,10 +920,14 @@ void ImProcCoordinator::freeAll ()
     }
 
     if (allocated) {
-        if (orig_prev != oprevi) {
+        if (oprevf != orig_prev) {
+            delete oprevf;
+        }
+        if (oprevi != oprevf) {
             delete oprevi;
         }
 
+        oprevf    = nullptr;
         oprevi    = nullptr;
         delete orig_prev;
         orig_prev = nullptr;
@@ -902,7 +939,6 @@ void ImProcCoordinator::freeAll ()
         if (ncie) {
             delete ncie;
         }
-
         ncie      = nullptr;
 
         if (imageListener) {
@@ -930,7 +966,7 @@ void ImProcCoordinator::freeAll ()
  *
  * @param prevscale New Preview's scale.
  */
-void ImProcCoordinator::setScale (int prevscale)
+void ImProcCoordinator::setScale (int prevscale, bool needFullSize)
 {
 
     if (settings->verbose) {
@@ -942,30 +978,41 @@ void ImProcCoordinator::setScale (int prevscale)
     int nW, nH;
     imgsrc->getFullSize (fw, fh, tr);
 
+    printf("setScale  /  W:%d  H:%d  prevscale:%d", fw, fh, prevscale);
     prevscale++;
 
     do {
         prevscale--;
         PreviewProps pp (0, 0, fw, fh, prevscale);
-        imgsrc->getSize (pp, nW, nH);
-    } while (nH < 400 && prevscale > 1 && (nW * nH < 1000000) ); // sctually hardcoded values, perhaps a better choice is possible
+        pp.getSize (nW, nH);
+    } while (nH < 400 && prevscale > 1 && (nW * nH < 1000000) ); // actually hardcoded values, perhaps a better choice is possible
+
+    printf("  >>  prevscale:%d  nW:%d (%d)  nH:%d (%d)\n", prevscale, nW, pW, nH, pH);
 
     if (settings->verbose) {
         printf ("setscale starts (%d, %d)\n", nW, nH);
     }
 
     if (nW != pW || nH != pH) {
+        printf("Allocating new buffers !\n");
 
         freeAll ();
 
         pW = nW;
         pH = nH;
 
-        orig_prev = new Imagefloat (pW, pH);
-        oprevi = orig_prev;
+        if (needFullSize) {
+            // this is a hack : the Fattal tool need full sized image
+            printf("Allocating orig_prev: %d x %d (needFullSize = true)\n", fw, fh);
+            orig_prev = new Imagefloat (fw, fh);
+        } else {
+            printf("Allocating orig_prev: %d x %d (needFullSize = false)\n", pW, pH);
+            orig_prev = new Imagefloat (pW, pH);
+        }
         oprevl = new LabImage (pW, pH);
         nprevl = new LabImage (pW, pH);
         //ncie is only used in ImProcCoordinator::updatePreviewImage, it will be allocated on first use and deleted if not used anymore
+        //fattal is only used in ImProcCoordinator::updatePreviewImage, it will be allocated on first use and deleted if not used anymore
         previmg = new Image8 (pW, pH);
         workimg = new Image8 (pW, pH);
 
@@ -974,6 +1021,27 @@ void ImProcCoordinator::setScale (int prevscale)
         }
 
         allocated = true;
+    } else {
+        // Allocating orig_prev depending on needFullSize
+        if (orig_prev && ((needFullSize && orig_prev->getWidth() != fw) || (!needFullSize && orig_prev->getWidth() != pW))) {
+            if (oprevi && oprevi != oprevf) {
+                delete oprevi;
+                oprevi = nullptr;
+            }
+            if (oprevf && oprevf != orig_prev) {
+                delete oprevf;
+                oprevf = nullptr;
+            }
+            delete orig_prev;
+            if (needFullSize) {
+                // this is a hack : the Fattal tool need full sized image
+                printf("Allocating orig_prev: %d x %d (needFullSize = true)\n", fw, fh);
+                orig_prev = new Imagefloat (fw, fh);
+            } else {
+                printf("Allocating orig_prev: %d x %d (needFullSize = false)\n", pW, pH);
+                orig_prev = new Imagefloat (pW, pH);
+            }
+        }
     }
 
     scale = prevscale;
@@ -1053,10 +1121,10 @@ void ImProcCoordinator::updateLRGBHistograms ()
 void ImProcCoordinator::progress (Glib::ustring str, int pr)
 {
 
-    /*  if (plistener) {
+    if (plistener) {
         plistener->setProgressStr (str);
         plistener->setProgress ((double)pr / 100.0);
-      }*/
+    }
 }
 
 bool ImProcCoordinator::getAutoWB (double& temp, double& green, double equal, double tempBias)

@@ -48,6 +48,7 @@ protected:
     SHMap*       cshmap;     // per line allocation
 
     // --- automatically allocated and deleted when necessary, and only renewed on size changes
+    Imagefloat*  fattalCrop;   // "one chunk" allocation, allocated if necessary
     Imagefloat*  transCrop;    // "one chunk" allocation, allocated if necessary
     CieImage*    cieCrop;      // allocating 6 images, each in "one chunk" allocation
     // -----------------------------------------------------------------

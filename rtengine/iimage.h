@@ -325,6 +325,46 @@ public:
         }
     }
 
+    /** Copy a sub-part of the data to another PlanarWhateverData */
+    void copyData(PlanarWhateverData<T> *dest, int x_, int y_, int width_, int height_)
+    {
+        assert (dest != nullptr);
+
+        // sanity check
+        if (x_ > width - 1) {
+            printf("ERROR: PlanarWhateverData::copyData >>> allocation failed : requested x(%d) > source's width(%d)!\n", x_, width);
+            return;
+        }
+        if (y_ > height - 1) {
+            printf("ERROR: PlanarWhateverData::copyData >>> allocation failed : requested y(%d) > source's height(%d)!\n", y_, height);
+            return;
+        }
+        if (x_ + width_  > width) {
+            printf("ERROR: PlanarWhateverData::copyData >>> allocation failed : requested width too wide! %d+%d > %d\n", x_, width_, width);
+            return;
+        }
+        if (y_ + height_  > height) {
+            printf("ERROR: PlanarWhateverData::copyData >>> allocation failed : requested height too tall! %d+%d > %d\n", y_, height_, height);
+            return;
+        }
+
+        // Make sure that the size is the same, reallocate if necessary
+        dest->allocate(width_, height_);
+
+        if (dest->width ==-1) {
+            printf("ERROR: PlanarRGBData::copyData >>> allocation failed!\n");
+            return;
+        }
+
+        if (!x_ && !y_ && width_ == width && height_ == height) {
+            memcpy (dest->data, data, width * height * sizeof(T));
+        } else {
+            for (int a = 0, i = y_ ; a < height_; ++i, ++a) {
+                memcpy (dest->data + a * width_ * sizeof(T), data + (a * width + x_) * sizeof(T), width_ * sizeof(T));
+            }
+        }
+    }
+
     void rotate (int deg)
     {
 
@@ -733,6 +773,44 @@ public:
             memcpy (dest->r(i), r(i), width * sizeof(T));
             memcpy (dest->g(i), g(i), width * sizeof(T));
             memcpy (dest->b(i), b(i), width * sizeof(T));
+        }
+    }
+
+    /** Copy a sub-part of the data to another PlanarRGBData */
+    void copyData(PlanarRGBData<T> *dest, int x_, int y_, int width_, int height_)
+    {
+        assert (dest != nullptr);
+
+        // sanity check
+        if (x_ > width - 1) {
+            printf("ERROR: PlanarRGBData::copyData >>> allocation failed : requested x(%d) > source's width(%d)!\n", x_, width);
+            return;
+        }
+        if (y_ > height - 1) {
+            printf("ERROR: PlanarRGBData::copyData >>> allocation failed : requested y(%d) > source's height(%d)!\n", y_, height);
+            return;
+        }
+        if (x_ + width_  > width) {
+            printf("ERROR: PlanarRGBData::copyData >>> allocation failed : requested width too wide! %d+%d > %d\n", x_, width_, width);
+            return;
+        }
+        if (y_ + height_  > height) {
+            printf("ERROR: PlanarRGBData::copyData >>> allocation failed : requested height too tall! %d+%d > %d\n", y_, height_, height);
+            return;
+        }
+
+        // Make sure that the size is the same, reallocate if necessary
+        dest->allocate(width_, height_);
+
+        if (dest->width ==-1) {
+            printf("ERROR: PlanarRGBData::copyData >>> allocation failed!\n");
+            return;
+        }
+
+        for (int a = 0, i = y_ ; a < height_; ++i, ++a) {
+            memcpy (dest->r(a), r(i) + x_, width_ * sizeof(T));
+            memcpy (dest->g(a), g(i) + x_, width_ * sizeof(T));
+            memcpy (dest->b(a), b(i) + x_, width_ * sizeof(T));
         }
     }
 
@@ -1343,6 +1421,46 @@ public:
         }
 
         memcpy (dest->data, data, 3 * width * height * sizeof(T));
+    }
+
+    /** Copy a sub-part of the data to another ChunkyRGBData */
+    void copyData(ChunkyRGBData<T> *dest, int x_, int y_, int width_, int height_)
+    {
+        assert (dest != nullptr);
+
+        // sanity check
+        if (x_ > width - 1) {
+            printf("ERROR: ChunkyRGBData::copyData >>> allocation failed : requested x(%d) > source's width(%d)!\n", x_, width);
+            return;
+        }
+        if (y_ > height - 1) {
+            printf("ERROR: ChunkyRGBData::copyData >>> allocation failed : requested y(%d) > source's height(%d)!\n", y_, height);
+            return;
+        }
+        if (x_ + width_  > width) {
+            printf("ERROR: PlanarRGBData::copyData >>> allocation failed : requested width too wide! %d+%d > %d\n", x_, width_, width);
+            return;
+        }
+        if (y_ + height_  > height) {
+            printf("ERROR: PlanarRGBData::copyData >>> allocation failed : requested height too tall! %d+%d > %d\n", y_, height_, height);
+            return;
+        }
+
+        // Make sure that the size is the same, reallocate if necessary
+        dest->allocate(width_, height_);
+
+        if (dest->width ==-1) {
+            printf("ERROR: PlanarRGBData::copyData >>> allocation failed!\n");
+            return;
+        }
+
+        if (!x_ && !y_ && width_ == width && height_ == height) {
+            memcpy (dest->data, data, 3 * width * height * sizeof(T));
+        } else {
+            for (int a = 0, i = y_ ; a < height_; ++i, ++a) {
+                memcpy (dest->data + a * width_ * 3 * sizeof(T), data + (a * width + x_) * 3 * sizeof(T), 3 * width_ * sizeof(T));
+            }
+        }
     }
 
     void rotate (int deg)

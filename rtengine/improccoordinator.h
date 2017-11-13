@@ -53,7 +53,10 @@ class ImProcCoordinator : public StagedImageProcessor
     friend class Crop;
 
 protected:
+    Imagefloat *fattal;  // Fattal main buffer, full size image
+
     Imagefloat *orig_prev;
+    Imagefloat *oprevf;  // Scaled Fattal image
     Imagefloat *oprevi;
     LabImage *oprevl;
     LabImage *nprevl;
@@ -178,8 +181,8 @@ protected:
     void progress (Glib::ustring str, int pr);
     void reallocAll ();
     void updateLRGBHistograms ();
-    void setScale (int prevscale);
-    void updatePreviewImage (int todo, Crop* cropCall = nullptr);
+    void setScale (int prevscale, bool needFullSize);
+    void updatePreviewImage (int todo);
 
     MyMutex mProcessing;
     ProcParams params;
@@ -232,7 +235,7 @@ public:
 
     void setPreviewScale    (int scale)
     {
-        setScale (scale);
+        setScale (scale, params.checkNeedFullImage());
     }
     int  getPreviewScale    ()
     {

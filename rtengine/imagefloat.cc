@@ -170,6 +170,14 @@ Imagefloat* Imagefloat::copy ()
     return cp;
 }
 
+Imagefloat* Imagefloat::copy (int x, int y, int width, int height)
+{
+    Imagefloat* cp = new Imagefloat (width, height);
+    copyData(cp, x, y, width, height);
+    return cp;
+}
+
+
 // This is called by the StdImageSource class. We assume that fp images from StdImageSource don't have to deal with gamma
 void Imagefloat::getStdImage (ColorTemp ctemp, int tran, Imagefloat* image, PreviewProps pp, bool first, procparams::ToneCurveParams hrp)
 {
@@ -318,6 +326,112 @@ void Imagefloat::getStdImage (ColorTemp ctemp, int tran, Imagefloat* image, Prev
                     image->g(imwidth - 1 - dst_x, iy) = lineG[dst_x];
                     image->b(imwidth - 1 - dst_x, iy) = lineB[dst_x];
                 }
+        }
+
+#ifdef _OPENMP
+    }
+#endif
+}
+
+void Imagefloat::getCrop (Imagefloat* image, int x_, int y_, int width_, int height_, int skip)
+{
+
+    // compute channel multipliers
+    int imwidth = image->width; // Destination image
+    int imheight = image->height; // Destination image
+
+    int maxx = width; // Source image
+    int maxy = height; // Source image
+
+    // improve speed by integrating the area division into the multipliers
+    // switched to using ints for the red/green/blue channel buffer.
+    // Incidentally this improves accuracy too.
+    float area = skip * skip;
+    float f = 1./area;
+
+#ifdef _OPENMP
+    #pragma omp parallel
+    {
+#endif
+        AlignedBuffer<float> abR(imwidth);
+        AlignedBuffer<float> abG(imwidth);
+        AlignedBuffer<float> abB(imwidth);
+        float *lineR  = abR.data;
+        float *lineG  = abG.data;
+        float *lineB =  abB.data;
+
+#ifdef _OPENMP
+        #pragma omp for
+#endif
+
+        for (int iy = 0; iy < imheight; iy++) {
+            if (skip == 1) {
+                // special case (speedup for 1:1 scale)
+                // i: source image, first line of the current destination row
+                int src_y = y_ + iy;
+
+                // overflow security check, not sure that it's necessary
+                if (src_y >= maxy) {
+                    continue;
+                }
+
+                for (int dst_x = 0, src_x = x_; dst_x < imwidth; dst_x++, src_x++) {
+                    // overflow security check, not sure that it's necessary
+                    if (src_x >= maxx) {
+                        continue;
+                    }
+
+                    lineR[dst_x] = r(src_y, src_x);
+                    lineG[dst_x] = g(src_y, src_x);
+                    lineB[dst_x] = b(src_y, src_x);
+                }
+            } else {
+                // source image, first line of the current destination row
+                int src_y = y_ + skip * iy;
+
+                if (src_y >= maxy) {
+                    continue;
+                }
+
+                for (int dst_x = 0, src_x = x_; dst_x < imwidth; dst_x++, src_x += skip) {
+                    if (src_x >= maxx) {
+                        continue;
+                    }
+
+                    int src_sub_width = MIN(maxx - src_x, skip);
+                    int src_sub_height = MIN(maxy - src_y, skip);
+
+                    float rtot, gtot, btot; // RGB accumulators
+                    rtot = gtot = btot = 0.;
+
+                    for (int src_sub_y = 0; src_sub_y < src_sub_height; src_sub_y++)
+                        for (int src_sub_x = 0; src_sub_x < src_sub_width; src_sub_x++) {
+                            rtot += r(src_y + src_sub_y, src_x + src_sub_x);
+                            gtot += g(src_y + src_sub_y, src_x + src_sub_x);
+                            btot += b(src_y + src_sub_y, src_x + src_sub_x);
+                        }
+
+                    // convert back to gamma and clip
+                    if (src_sub_width == skip && src_sub_height == skip) {
+                        // Common case where the sub-region is complete
+                        lineR[dst_x] = f * rtot;
+                        lineG[dst_x] = f * gtot;
+                        lineB[dst_x] = f * btot;
+                    } else {
+                        // computing a special factor for this incomplete sub-region
+                        float area = src_sub_width * src_sub_height;
+                        lineR[dst_x] = rtot / area;
+                        lineG[dst_x] = gtot / area;
+                        lineB[dst_x] = btot / area;
+                    }
+                }
+            }
+
+            for (int dst_x = 0, src_x = x_; dst_x < imwidth; dst_x++, src_x += skip) {
+                image->r(iy, dst_x) = lineR[dst_x];
+                image->g(iy, dst_x) = lineG[dst_x];
+                image->b(iy, dst_x) = lineB[dst_x];
+            }
         }
 
 #ifdef _OPENMP

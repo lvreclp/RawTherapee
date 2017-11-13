@@ -1463,6 +1463,14 @@ public:
       */
     int     load        (const Glib::ustring &fname, ParamsEdited* pedited = nullptr);
 
+    /** Tell if some tools need to process the full image
+     */
+    bool checkNeedFullImage();
+
+    /** Tell if a larger crop is necessary for lens correction
+     */
+    bool checkNeedLargerCropForLCPDistortion (int fw, int fh, int x, int y, int w, int h);
+
     /** Creates a new instance of ProcParams.
       * @return a pointer to the new ProcParams instance. */
     static ProcParams* create  ();

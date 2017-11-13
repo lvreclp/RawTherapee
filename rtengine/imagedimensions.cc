@@ -54,6 +54,12 @@ int PreviewProps::getSkip() const
     return skip;
 }
 
+void PreviewProps::getSize (int& w, int& h)
+{
+    w = width / skip + (width % skip > 0);
+    h = height / skip + (height % skip > 0);
+}
+
 ImageDimensions::ImageDimensions() :
     width(-1),
     height(-1)

@@ -29,6 +29,7 @@ public:
     int getWidth() const;
     int getHeight() const;
     int getSkip() const;
+    void getSize (int& w, int& h);
 
 private:
     int x;
