@@ -403,9 +403,11 @@ void ImProcCoordinator::updatePreviewImage (int todo)
     if (params.checkNeedFullImage()) {
         if (todo & M_HDR) {
             progress ("HDR tone mapping...", 100 * readyphase / numofphases);
+            // at this stage, orig_prev is a full size image
             if (!fattal) {
-                //printf("***********  orig_prev: %d x %d\n", orig_prev->getWidth(), orig_prev->getHeight());
-                fattal = orig_prev->copy();  // at this stage, orig_prev is a full size image
+                fattal = orig_prev->copy();
+            } else {
+                orig_prev->copyData(fattal);
             }
             ipf.ToneMapFattal02(fattal);
             if (!oprevf) {
