@@ -59,6 +59,7 @@ protected:
     int skip;
     int cropx, cropy, cropw, croph;         /// size of the detail crop image ('skip' taken into account), with border
     int trafx, trafy, trafw, trafh;         /// the size and position to get from the imagesource that is transformed to the requested crop area
+    int extcropw, extcroph;                 /// extended crop width/height in scaled down space, taking into account additional space for lens correction
     int rqcropx, rqcropy, rqcropw, rqcroph; /// size of the requested detail crop image (the image might be smaller) (without border)
     const int borderRequested;              /// requested extra border size for image processing
     int upperBorder, leftBorder;            /// extra border size really allocated for image processing

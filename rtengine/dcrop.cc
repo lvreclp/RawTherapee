@@ -45,7 +45,7 @@ Crop::Crop (ImProcCoordinator* parent, EditDataProvider *editDataProvider, bool 
       cropImg (nullptr), cbuf_real (nullptr), cshmap (nullptr), fattalCrop(nullptr), transCrop (nullptr),
       cieCrop (nullptr), cbuffer (nullptr), updating (false), newUpdatePending (false), skip (10),
       cropx (0), cropy (0), cropw (-1), croph (-1),
-      trafx (0), trafy (0), trafw (-1), trafh (-1),
+      trafx (0), trafy (0), trafw (-1), trafh (-1), extcropw(-1), extcroph(-1),
       rqcropx (0), rqcropy (0), rqcropw (-1), rqcroph (-1),
       borderRequested (32), upperBorder (0), leftBorder (0),
       cropAllocated (false),
@@ -231,20 +231,20 @@ void Crop::update (int todo)
             if (params.dirpyrDenoise.Cmethod == "MAN" || params.dirpyrDenoise.Cmethod == "PON" )  {
                 PreviewProps pp (trafx, trafy, trafw, trafh, skip);
                 parent->imgsrc->getImage (parent->currWB, tr, origCrop, pp, params.toneCurve, params.icm, params.raw );
-                printf("Crop::update / trafx=%d, trafy=%d, trafw=%d, trafh=%d, skip=%d\n", trafx, trafy, trafw, trafh, skip);
+                //printf("Crop::update / trafx=%d, trafy=%d, trafw=%d, trafh=%d, skip=%d\n", trafx, trafy, trafw, trafh, skip);
             }
         } else {
             if (params.dirpyrDenoise.C2method == "MANU")  {
                 PreviewProps pp (trafx, trafy, trafw, trafh, skip);
                 parent->imgsrc->getImage (parent->currWB, tr, origCrop, pp, params.toneCurve, params.icm, params.raw );
-                printf("Crop::update / trafx=%d, trafy=%d, trafw=%d, trafh=%d, skip=%d\n", trafx, trafy, trafw, trafh, skip);
+                //printf("Crop::update / trafx=%d, trafy=%d, trafw=%d, trafh=%d, skip=%d\n", trafx, trafy, trafw, trafh, skip);
             }
         }
 
         if ((settings->leveldnautsimpl == 1 && params.dirpyrDenoise.Cmethod == "PRE") || (settings->leveldnautsimpl == 0 && params.dirpyrDenoise.C2method == "PREV")) {
             PreviewProps pp (trafx, trafy, trafw, trafh, skip);
             parent->imgsrc->getImage (parent->currWB, tr, origCrop, pp, params.toneCurve, params.icm, params.raw );
-            printf("Crop::update / trafx=%d, trafy=%d, trafw=%d, trafh=%d, skip=%d\n", trafx, trafy, trafw, trafh, skip);
+            //printf("Crop::update / trafx=%d, trafy=%d, trafw=%d, trafh=%d, skip=%d\n", trafx, trafy, trafw, trafh, skip);
 
             if ((!isDetailWindow) && parent->adnListener && skip == 1 && params.dirpyrDenoise.enabled) {
                 float lowdenoise = 1.f;
@@ -702,7 +702,7 @@ void Crop::update (int todo)
             } else {
                 fattalCrop->allocate(cropw, croph);
             }
-            printf("Crop  /  Computing Fattal: trafx=%d, trafy=%d, trafw=%d, trafh=%d, cropw=%d, croph=%d\n", trafx, trafy, trafw, trafh, cropw, croph);
+            //printf("Crop  /  Computing Fattal: trafx=%d, trafy=%d, trafw=%d, trafh=%d, cropw=%d, croph=%d\n", trafx, trafy, trafw, trafh, cropw, croph);
             parent->fattal->getCrop(fattalCrop, trafx, trafy, trafw, trafh, skip);
         }
         if (fattalCrop) {
@@ -710,7 +710,7 @@ void Crop::update (int todo)
         }
     } else {
         if (fattalCrop) {
-            printf("Crop  /  Deleting Fattal crop\n");
+            //printf("Crop  /  Deleting Fattal crop\n");
             delete fattalCrop;
             fattalCrop = nullptr;
         }
@@ -1127,7 +1127,7 @@ bool Crop::setCropSizes (int rcx, int rcy, int rcw, int rch, int skip, bool inte
     rqcropy = rcy;
     rqcropw = rcw;
     rqcroph = rch;
-    printf("rqcropx=%d, rqcropy=%d, rqcropw=%d, rqcroph=%d\n", rqcropx, rqcropy, rqcropw, rqcroph);
+    //printf("rqcropx=%d, rqcropy=%d, rqcropw=%d, rqcroph=%d\n", rqcropx, rqcropy, rqcropw, rqcroph);
 
     // store and set requested crop size
     int rqx1 = LIM (rqcropx, 0, parent->fullw - 1);  // Trimmed left side
@@ -1162,6 +1162,8 @@ bool Crop::setCropSizes (int rcx, int rcy, int rcw, int rch, int skip, bool inte
     ProcParams& params = parent->params;
 
     parent->ipf.transCoord (parent->fw, parent->fh, bx1, by1, bw, bh, orx, ory, orw, orh);
+
+    //printf("=========   orx:%d  ory:%d  orw:%d  orh:%d\n", orx, ory, orw, orh);
 
     if (parent->params.checkNeedLargerCropForLCPDistortion(parent->fw, parent->fh, orx, ory, orw, orh)) {
         // TODO - this is an estimate of the max distortion relative to the image size. ATM it is hardcoded to be 15%, which seems enough. If not, need to revise
@@ -1198,25 +1200,26 @@ bool Crop::setCropSizes (int rcx, int rcy, int rcw, int rch, int skip, bool inte
         orh = min (y2 - y1, parent->fh - ory);
     }
 
-
-    PreviewProps cp (orx, ory, orw, orh, skip);
-    int orW, orH;
-    cp.getSize (orW, orH);
-
     trafx = orx;
     trafy = ory;
     trafw = orw;
     trafh = orh;
 
+    int extw = skips (trafw, skip);
+    int exth = skips (trafh, skip);
+
     int cw = skips (bw, skip);
     int ch = skips (bh, skip);
+
 
     leftBorder  = skips (rqx1 - bx1, skip);
     upperBorder = skips (rqy1 - by1, skip);
 
-    //if (settings->verbose) {
-        printf ("setsizes starts (%d, %d, %d, %d, %d, %d)\n", orW, orH, trafw, trafh, cw, ch);
-    //}
+    //printf("=========   orx:%d  ory:%d  orw:%d  orh:%d  upperBorder:%d  leftBorder:%d  extw:%d  exth:%d  cw:%d  ch:%d (bw:%d  bh:%d)\n", orx, ory, orw, orh, upperBorder, leftBorder, extw, exth, cw, ch, bw, bh);
+
+    if (settings->verbose) {
+        printf ("setsizes starts (%d, %d, %d, %d, %d, %d)\n", extw, exth, trafw, trafh, cw, ch);
+    }
 
     EditType editType = ET_PIPETTE;
 
@@ -1226,16 +1229,18 @@ bool Crop::setCropSizes (int rcx, int rcy, int rcw, int rch, int skip, bool inte
         }
     }
 
-    if (cw != cropw || ch != croph) {
+    if (cw != cropw || ch != croph || extw != extcropw || exth != extcroph) {
 
         cropw = cw;
         croph = ch;
+        extcropw = extw;
+        extcroph = exth;
 
         if (!origCrop) {
             origCrop = new Imagefloat;
         }
 
-        origCrop->allocate (cropw, croph); // Resizing the buffer (optimization)
+        origCrop->allocate (extcropw, extcroph); // Resizing the buffer (optimization)
 
         // fattalCrop will be created where necessary
         // transcrop will be created where necessary
@@ -1301,6 +1306,8 @@ bool Crop::setCropSizes (int rcx, int rcy, int rcw, int rch, int skip, bool inte
 
     cropx = bx1;
     cropy = by1;
+
+    //printf("------------------------------------------------\n");
 
     if (settings->verbose) {
         printf ("setsizes ends\n");

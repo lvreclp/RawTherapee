@@ -404,7 +404,7 @@ void ImProcCoordinator::updatePreviewImage (int todo)
         if (todo & M_HDR) {
             progress ("HDR tone mapping...", 100 * readyphase / numofphases);
             if (!fattal) {
-                printf("***********  orig_prev: %d x %d\n", orig_prev->getWidth(), orig_prev->getHeight());
+                //printf("***********  orig_prev: %d x %d\n", orig_prev->getWidth(), orig_prev->getHeight());
                 fattal = orig_prev->copy();  // at this stage, orig_prev is a full size image
             }
             ipf.ToneMapFattal02(fattal);
@@ -592,8 +592,8 @@ void ImProcCoordinator::updatePreviewImage (int todo)
             DCPProfile::ApplyState as;
             DCPProfile *dcpProf = imgsrc->getDCP (params.icm, currWB, as);
 
-            printf("baseCrop: %p, oprevl: %p\n", baseCrop, oprevl);
-            printf("baseCrop: %d x %d, oprevl: %d x %d\n", baseCrop->getWidth(), baseCrop->getHeight(), oprevl->W, oprevl->H);
+            //printf("baseCrop: %p, oprevl: %p\n", baseCrop, oprevl);
+            //printf("baseCrop: %d x %d, oprevl: %d x %d\n", baseCrop->getWidth(), baseCrop->getHeight(), oprevl->W, oprevl->H);
 
 
             ipf.rgbProc (baseCrop, oprevl, nullptr, hltonecurve, shtonecurve, tonecurve, shmap, params.toneCurve.saturation,
@@ -978,7 +978,7 @@ void ImProcCoordinator::setScale (int prevscale, bool needFullSize)
     int nW, nH;
     imgsrc->getFullSize (fw, fh, tr);
 
-    printf("setScale  /  W:%d  H:%d  prevscale:%d", fw, fh, prevscale);
+    //printf("setScale  /  W:%d  H:%d  prevscale:%d", fw, fh, prevscale);
     prevscale++;
 
     do {
@@ -987,14 +987,14 @@ void ImProcCoordinator::setScale (int prevscale, bool needFullSize)
         pp.getSize (nW, nH);
     } while (nH < 400 && prevscale > 1 && (nW * nH < 1000000) ); // actually hardcoded values, perhaps a better choice is possible
 
-    printf("  >>  prevscale:%d  nW:%d (%d)  nH:%d (%d)\n", prevscale, nW, pW, nH, pH);
+    //printf("  >>  prevscale:%d  nW:%d (%d)  nH:%d (%d)\n", prevscale, nW, pW, nH, pH);
 
     if (settings->verbose) {
         printf ("setscale starts (%d, %d)\n", nW, nH);
     }
 
     if (nW != pW || nH != pH) {
-        printf("Allocating new buffers !\n");
+        //printf("Allocating new buffers !\n");
 
         freeAll ();
 
@@ -1003,10 +1003,10 @@ void ImProcCoordinator::setScale (int prevscale, bool needFullSize)
 
         if (needFullSize) {
             // this is a hack : the Fattal tool need full sized image
-            printf("Allocating orig_prev: %d x %d (needFullSize = true)\n", fw, fh);
+            //printf("Allocating orig_prev: %d x %d (needFullSize = true)\n", fw, fh);
             orig_prev = new Imagefloat (fw, fh);
         } else {
-            printf("Allocating orig_prev: %d x %d (needFullSize = false)\n", pW, pH);
+            //printf("Allocating orig_prev: %d x %d (needFullSize = false)\n", pW, pH);
             orig_prev = new Imagefloat (pW, pH);
         }
         oprevl = new LabImage (pW, pH);
@@ -1035,10 +1035,10 @@ void ImProcCoordinator::setScale (int prevscale, bool needFullSize)
             delete orig_prev;
             if (needFullSize) {
                 // this is a hack : the Fattal tool need full sized image
-                printf("Allocating orig_prev: %d x %d (needFullSize = true)\n", fw, fh);
+                //printf("Allocating orig_prev: %d x %d (needFullSize = true)\n", fw, fh);
                 orig_prev = new Imagefloat (fw, fh);
             } else {
-                printf("Allocating orig_prev: %d x %d (needFullSize = false)\n", pW, pH);
+                //printf("Allocating orig_prev: %d x %d (needFullSize = false)\n", pW, pH);
                 orig_prev = new Imagefloat (pW, pH);
             }
         }
