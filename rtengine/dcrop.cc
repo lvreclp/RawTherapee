@@ -698,9 +698,9 @@ void Crop::update (int todo)
     if (params.fattal.enabled) {
         if (todo & M_HDR) {
             if (!fattalCrop) {
-                fattalCrop = new Imagefloat (cropw, croph);
+                fattalCrop = new Imagefloat (extcropw, extcroph);
             } else {
-                fattalCrop->allocate(cropw, croph);
+                fattalCrop->allocate(extcropw, extcroph);
             }
             //printf("Crop  /  Computing Fattal: trafx=%d, trafy=%d, trafw=%d, trafh=%d, cropw=%d, croph=%d\n", trafx, trafy, trafw, trafh, cropw, croph);
             parent->fattal->getCrop(fattalCrop, trafx, trafy, trafw, trafh, skip);
@@ -726,6 +726,7 @@ void Crop::update (int todo)
                 transCrop->allocate(cropw, croph);
             }
 
+            //printf("skip:%d  cropx:%d  cropy:%d  trafx:%d  trafy:%d \n", skip, cropx, cropy, trafx, trafy);
             parent->ipf.transform (baseCrop, transCrop, cropx / skip, cropy / skip, trafx / skip, trafy / skip, skips (parent->fw, skip), skips (parent->fh, skip), parent->getFullWidth(), parent->getFullHeight(),
                                    parent->imgsrc->getMetaData(),
                                    parent->imgsrc->getRotateDegree(), false);

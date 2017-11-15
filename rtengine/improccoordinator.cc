@@ -428,6 +428,8 @@ void ImProcCoordinator::updatePreviewImage (int todo)
     }
     if (oprevf) {
         baseCrop = oprevf;
+    } else {
+        baseCrop = orig_prev;
     }
     readyphase++;
 
