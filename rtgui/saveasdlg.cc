@@ -54,6 +54,7 @@ SaveAsDialog::SaveAsDialog (const Glib::ustring &initialDir, Gtk::Window* parent
     fchooser = Gtk::manage( new Gtk::FileChooserWidget (Gtk::FILE_CHOOSER_ACTION_SAVE) );
     fchooser->set_current_folder (initialDir);
     fchooser->signal_file_activated().connect(sigc::mem_fun(*this, &SaveAsDialog::okPressed));
+    fchooser->signal_key_press_event().connect([](GdkEventKey *) -> bool { return true; }, false);
 
     filter_jpg = Gtk::FileFilter::create();
     filter_jpg->set_name(M("SAVEDLG_JPGFILTER"));
