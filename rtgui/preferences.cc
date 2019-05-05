@@ -2523,9 +2523,8 @@ void Preferences::updateDFinfos()
 
 void Preferences::updateFFinfos()
 {
-    int t1, t2;
-    rtengine::ffm.getStat (t1, t2);
-    Glib::ustring s = Glib::ustring::compose ("%1: %2 %3, %4 %5", M ("PREFERENCES_FLATFIELDFOUND"), t1, M ("PREFERENCES_FLATFIELDSHOTS"), t2, M ("PREFERENCES_FLATFIELDTEMPLATES"));
+    auto stats = rtengine::ffm.getStat ();
+    Glib::ustring s = Glib::ustring::compose ("%1: %2 %3, %4 %5", M ("PREFERENCES_FLATFIELDFOUND"), stats.first, M ("PREFERENCES_FLATFIELDSHOTS"), stats.second, M ("PREFERENCES_FLATFIELDTEMPLATES"));
     ffLabel->set_text (s);
 }
 

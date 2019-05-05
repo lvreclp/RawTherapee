@@ -231,11 +231,16 @@ void ffInfo::updateRawImage()
 
 // ************************* class FFManager *********************************
 
-void FFManager::init( Glib::ustring pathname )
+FFManager &FFManager::getInstance() {
+    static FFManager instance;
+    return instance;
+}
+
+void FFManager::init( const Glib::ustring &pathname )
 {
     std::vector<Glib::ustring> names;
 
-    auto dir = Gio::File::create_for_path (pathname);
+    const auto dir = Gio::File::create_for_path (pathname);
 
     if (!dir || !dir->query_exists()) {
         return;
@@ -243,9 +248,9 @@ void FFManager::init( Glib::ustring pathname )
 
     try {
 
-        auto enumerator = dir->enumerate_children ("standard::name");
+        const auto enumerator = dir->enumerate_children ("standard::name");
 
-        while (auto file = enumerator->next_file ()) {
+        while (const auto file = enumerator->next_file ()) {
             names.emplace_back (Glib::build_filename (pathname, file->get_name ()));
         }
 
@@ -285,6 +290,11 @@ void FFManager::init( Glib::ustring pathname )
 
     currentPath = pathname;
     return;
+}
+
+Glib::ustring FFManager::getPathname() const
+{
+    return currentPath;
 }
 
 ffInfo* FFManager::addFileInfo (const Glib::ustring& filename, bool pool)
@@ -360,21 +370,23 @@ ffInfo* FFManager::addFileInfo (const Glib::ustring& filename, bool pool)
     return nullptr;
 }
 
-void FFManager::getStat( int &totFiles, int &totTemplates)
+FFManager::ffStat_t FFManager::getStat() const
 {
-    totFiles = 0;
-    totTemplates = 0;
+    int totalFiles = 0;
+    int totalTemplates = 0;
 
-    for( ffList_t::iterator iter = ffList.begin(); iter != ffList.end(); ++iter ) {
-        ffInfo &i = iter->second;
+    for (const auto &info : ffList) {
+        const auto &i = info.second;
 
         if( i.pathname.empty() ) {
-            totTemplates++;
-            totFiles += i.pathNames.size();
+            totalTemplates++;
+            totalFiles += i.pathNames.size();
         } else {
-            totFiles++;
+            totalFiles++;
         }
     }
+
+    return std::make_pair(totalFiles, totalTemplates);
 }
 
 /*  The search for the best match is twofold:
@@ -449,11 +461,6 @@ RawImage* FFManager::searchFlatField( const Glib::ustring filename )
 
     return nullptr;
 }
-
-
-// Global variable
-FFManager ffm;
-
 
 }
 

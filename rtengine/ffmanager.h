@@ -75,25 +75,27 @@ protected:
 class FFManager
 {
 public:
-    void init( Glib::ustring pathname );
-    Glib::ustring getPathname()
-    {
-        return currentPath;
-    };
-    void getStat( int &totFiles, int &totTemplate);
+    using ffStat_t = std::pair<int, int>;
+
+    static FFManager &getInstance();
+    void init( const Glib::ustring &pathname );
+    Glib::ustring getPathname() const;
+    ffStat_t getStat() const;
     RawImage *searchFlatField( const std::string &mak, const std::string &mod, const std::string &len, double focallength, double apert, time_t t );
     RawImage *searchFlatField( const Glib::ustring filename );
 
-protected:
+private:
+    FFManager() = default;
+    ffInfo *addFileInfo(const Glib::ustring &filename, bool pool = true );
+    ffInfo *find( const std::string &mak, const std::string &mod, const std::string &len, double focal, double apert, time_t t );
+
     typedef std::multimap<std::string, ffInfo> ffList_t;
     typedef std::map<std::string, std::list<badPix> > bpList_t;
     ffList_t ffList;
     bool initialized;
     Glib::ustring currentPath;
-    ffInfo *addFileInfo(const Glib::ustring &filename, bool pool = true );
-    ffInfo *find( const std::string &mak, const std::string &mod, const std::string &len, double focal, double apert, time_t t );
 };
 
-extern FFManager ffm;
+#define ffm FFManager::getInstance()
 
 }
