@@ -112,11 +112,8 @@ FILEBROWSER_COLORLABEL_TOOLTIP;Color label\n\nUse dropdown menu or Shortcuts:\n<
 FILEBROWSER_COPYPROFILE;Скопировать профиль
 FILEBROWSER_CURRENT_NAME;Текущее имя:
 FILEBROWSER_DARKFRAME;Темновой кадр
-FILEBROWSER_DELETEDLGLABEL;Подтверждение удаления файла
-FILEBROWSER_DELETEDLGMSG;Вы уверены, что хотите удалить <b>%1</b> выбранный(ых) файл(ов)?
-FILEBROWSER_DELETEDLGMSGINCLPROC;Вы уверены, что хотите удалить <b>%1</b> выделенных файлов, <b>включая</b> обработанные версии?
+FILEBROWSER_DELETEDIALOG_HEADER;Подтверждение удаления файла
 FILEBROWSER_EMPTYTRASH;Очистить корзину
-FILEBROWSER_EMPTYTRASHHINT;Удалить файлы из корзины без возможности восстановления
 FILEBROWSER_EXTPROGMENU;Открыть с помощью
 FILEBROWSER_FLATFIELD;Плоское поле
 FILEBROWSER_MOVETODARKFDIR;Переместить в каталог темновых кадров
@@ -150,8 +147,6 @@ FILEBROWSER_POPUPRANK2;Рейтинг 2 **
 FILEBROWSER_POPUPRANK3;Рейтинг 3 ***
 FILEBROWSER_POPUPRANK4;Рейтинг 4 ****
 FILEBROWSER_POPUPRANK5;Рейтинг 5 *****
-FILEBROWSER_POPUPREMOVE;Удалить с диска
-FILEBROWSER_POPUPREMOVEINCLPROC;Удалить с диска и пакетной обработки
 FILEBROWSER_POPUPRENAME;Переименовать
 FILEBROWSER_POPUPSELECTALL;Выбрать все
 FILEBROWSER_POPUPTRASH;Удалить в корзину
@@ -178,7 +173,6 @@ FILEBROWSER_SHOWDIRHINT;Сбросить все фильтры.\nГорячая 
 FILEBROWSER_SHOWEDITEDHINT;Показать измененные изображения.\nГорячая клавиша: <b>7</b>
 FILEBROWSER_SHOWEDITEDNOTHINT;Показать не измененные изображения.\nГорячая клавиша: <b>6</b>
 FILEBROWSER_SHOWEXIFINFO;Показать информацию EXIF.\nГорячая клавиша: <b>i</b>\n\nГорячая клавиша в режиме Одиночного редактора: <b>Alt-I</b>
-FILEBROWSER_SHOWNOTTRASHHINT;Показать только неудалённые изображения.
 FILEBROWSER_SHOWRANK1HINT;Показать изображения с рейтингом 1.\nГорячая клавиша: <b>1</b>
 FILEBROWSER_SHOWRANK2HINT;Показать изображения с рейтингом 2.\nГорячая клавиша: <b>2</b>
 FILEBROWSER_SHOWRANK3HINT;Показать изображения с рейтингом 3.\nГорячая клавиша: <b>3</b>
@@ -1471,6 +1465,13 @@ ZOOMPANEL_ZOOMOUT;Отдалить\nГорячая клавиша: <b>-</b>
 !FILEBROWSER_BROWSEPATHBUTTONHINT;Click to open specified path, reload folder and apply "find" keywords.
 !FILEBROWSER_CACHECLEARFROMFULL;Clear all including cached profiles
 !FILEBROWSER_CACHECLEARFROMPARTIAL;Clear all except cached profiles
+!FILEBROWSER_DELETEDIALOG_ALL;Are you sure you want to <b>permanently</b> delete all <b>%1</b> files in trash?
+!FILEBROWSER_DELETEDIALOG_SELECTED;Are you sure you want to <b>permanently</b> delete the selected <b>%1</b> files?
+!FILEBROWSER_DELETEDIALOG_SELECTEDINCLPROC;Are you sure you want to <b>permanently</b> delete the selected <b>%1</b> files, <b>including</b> a queue-processed version?
+!FILEBROWSER_EMPTYTRASHHINT;<b>Permanently</b> delete all files in trash.
+!FILEBROWSER_POPUPREMOVE;Delete permanently
+!FILEBROWSER_POPUPREMOVEINCLPROC;Delete permanently, including queue-processed version
+!FILEBROWSER_SHOWNOTTRASHHINT;Show only images not in trash.
 !FILEBROWSER_SHOWORIGINALHINT;Show only original images.\n\nWhen several images exist with the same filename but different extensions, the one considered original is the one whose extension is nearest the top of the parsed extensions list in Preferences > File Browser > Parsed Extensions.
 !FILECHOOSER_FILTER_PP;Processing profiles
 !FILECHOOSER_FILTER_SAME;Same format as current photo
@@ -1705,6 +1706,8 @@ ZOOMPANEL_ZOOMOUT;Отдалить\nГорячая клавиша: <b>-</b>
 !HISTORY_MSG_COLORTONING_LABREGION_SLOPE;CT - region slope
 !HISTORY_MSG_DUALDEMOSAIC_AUTO_CONTRAST;Dual demosaic - Auto threshold
 !HISTORY_MSG_DUALDEMOSAIC_CONTRAST;Dual demosaic - Contrast threshold
+!HISTORY_MSG_FILMNEGATIVE_ENABLED;Film Negative
+!HISTORY_MSG_FILMNEGATIVE_VALUES;Film negative values
 !HISTORY_MSG_ICM_OUTPUT_PRIMARIES;Output - Primaries
 !HISTORY_MSG_ICM_OUTPUT_TEMP;Output - ICC-v4 illuminant D
 !HISTORY_MSG_ICM_OUTPUT_TYPE;Output - Type
@@ -1774,6 +1777,7 @@ ZOOMPANEL_ZOOMOUT;Отдалить\nГорячая клавиша: <b>-</b>
 !PARTIALPASTE_COLORTONING;Color toning
 !PARTIALPASTE_DEHAZE;Haze removal
 !PARTIALPASTE_EQUALIZER;Wavelet levels
+!PARTIALPASTE_FILMNEGATIVE;Film Negative
 !PARTIALPASTE_FILMSIMULATION;Film simulation
 !PARTIALPASTE_FLATFIELDCLIPCONTROL;Flat-field clip control
 !PARTIALPASTE_PREPROCESS_PDAFLINESFILTER;PDAF lines filter
@@ -1871,7 +1875,7 @@ ZOOMPANEL_ZOOMOUT;Отдалить\nГорячая клавиша: <b>-</b>
 !TP_COLORAPP_SURROUND_DARK;Dark
 !TP_COLORAPP_SURROUND_DIM;Dim
 !TP_COLORAPP_SURROUND_EXDARK;Extremly Dark (Cutsheet)
-!TP_COLORAPP_SURROUND_TOOLTIP;Changes tones and colors to take into account the viewing conditions of the output device.\n\n<b>Average</b>: Average light environment (standard). The image will not change.\n\n<b>Dim</b>: Dim environment (TV). The image will become slighty dark.\n\n<b>Dark</b>: Dark environment (projector). The image will become more dark.\n\n<b>Extremly Dark</b>: Extremly dark environment (cutsheet). The image will become very dark.
+!TP_COLORAPP_SURROUND_TOOLTIP;Changes tones and colors to take into account the viewing conditions of the output device.\n\n<b>Average</b>: Average light environment (standard). The image will not change.\n\n<b>Dim</b>: Dim environment (TV). The image will become slightly dark.\n\n<b>Dark</b>: Dark environment (projector). The image will become more dark.\n\n<b>Extremly Dark</b>: Extremly dark environment (cutsheet). The image will become very dark.
 !TP_COLORAPP_TCMODE_BRIGHTNESS;Brightness
 !TP_COLORAPP_TCMODE_CHROMA;Chroma
 !TP_COLORAPP_TCMODE_COLORF;Colorfulness
@@ -1973,6 +1977,12 @@ ZOOMPANEL_ZOOMOUT;Отдалить\nГорячая клавиша: <b>-</b>
 !TP_DISTORTION_AUTO_TIP;Automatically corrects lens distortion in raw files by matching it against the embedded JPEG image if one exists and has had its lens disortion auto-corrected by the camera.
 !TP_EXPOS_BLACKPOINT_LABEL;Raw Black Points
 !TP_EXPOS_WHITEPOINT_LABEL;Raw White Points
+!TP_FILMNEGATIVE_BLUE;Blue ratio
+!TP_FILMNEGATIVE_GREEN;Reference exponent (contrast)
+!TP_FILMNEGATIVE_GUESS_TOOLTIP;Calculate exponents by picking two neutral reference spots in the image; one white (light gray) and one black (dark gray). The order does not matter. The exponents will be updated after the second spot is picked.
+!TP_FILMNEGATIVE_LABEL;Film Negative
+!TP_FILMNEGATIVE_PICK;Pick white and black spots
+!TP_FILMNEGATIVE_RED;Red ratio
 !TP_FILMSIMULATION_SLOWPARSEDIR;RawTherapee is configured to look for Hald CLUT images, which are used for the Film Simulation tool, in a folder which is taking too long to load.\nGo to Preferences > Image Processing > Film Simulation\nto see which folder is being used. You should either point RawTherapee to a folder which contains only Hald CLUT images and nothing more, or to an empty folder if you don't want to use the Film Simulation tool.\n\nRead the Film Simulation article in RawPedia for more information.\n\nDo you want to cancel the scan now?
 !TP_FLATFIELD_CLIPCONTROL;Clip control
 !TP_FLATFIELD_CLIPCONTROL_TOOLTIP;Clip control avoids clipped highlights caused by applying the flat field. If there are already clipped highlights before applying the flat field, clip control can lead to color cast.

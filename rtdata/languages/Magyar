@@ -81,11 +81,8 @@ FILEBROWSER_CLEARPROFILE;Feldolgozási paraméter törlése
 FILEBROWSER_COPYPROFILE;Feldolgozási paraméterek másolása
 FILEBROWSER_CURRENT_NAME;Aktuális név:
 FILEBROWSER_DARKFRAME;Referencia  feketekép (dark frame)
-FILEBROWSER_DELETEDLGLABEL;Állománytörlés megerősítése
-FILEBROWSER_DELETEDLGMSG;Biztosan törölni kívánja a kijelölt %1 képet?
-FILEBROWSER_DELETEDLGMSGINCLPROC;Biztos vagy benne, hogy törölni szeredné a kiválasztott %1 állományt, beleértve a feldolgozási sorba helyezett változatát IS?
+FILEBROWSER_DELETEDIALOG_HEADER;Állománytörlés megerősítése
 FILEBROWSER_EMPTYTRASH;Kuka ürítése
-FILEBROWSER_EMPTYTRASHHINT;A kukában lévő képek végleges, állományrendszerből történő eltávolítása.
 FILEBROWSER_FLATFIELD;Flat Field
 FILEBROWSER_MOVETODARKFDIR;Mozgatás a 'dark frame' könyvtárba
 FILEBROWSER_MOVETOFLATFIELDDIR;Flat Fields könyvtárba mozgatás
@@ -104,8 +101,6 @@ FILEBROWSER_POPUPOPENINEDITOR;Open in Szerkesztő
 FILEBROWSER_POPUPPROCESS;Feldolgozási sorba helyezés
 FILEBROWSER_POPUPPROCESSFAST;Feldolgozási sorba helyez (expressz export)
 FILEBROWSER_POPUPPROFILEOPERATIONS;Profilműveletek
-FILEBROWSER_POPUPREMOVE;Törlés (végleges)
-FILEBROWSER_POPUPREMOVEINCLPROC;Törlés (feldolgozási sorból is)
 FILEBROWSER_POPUPRENAME;Átnevezés
 FILEBROWSER_POPUPSELECTALL;Mindent kijelöl
 FILEBROWSER_POPUPTRASH;Kukába dobás
@@ -871,6 +866,10 @@ ZOOMPANEL_ZOOMOUT;Kicsinyítés <b>-</b>
 !FILEBROWSER_CACHECLEARFROMFULL;Clear all including cached profiles
 !FILEBROWSER_CACHECLEARFROMPARTIAL;Clear all except cached profiles
 !FILEBROWSER_COLORLABEL_TOOLTIP;Color label.\n\nUse dropdown menu or shortcuts:\n<b>Shift-Ctrl-0</b> No Color\n<b>Shift-Ctrl-1</b> Red\n<b>Shift-Ctrl-2</b> Yellow\n<b>Shift-Ctrl-3</b> Green\n<b>Shift-Ctrl-4</b> Blue\n<b>Shift-Ctrl-5</b> Purple
+!FILEBROWSER_DELETEDIALOG_ALL;Are you sure you want to <b>permanently</b> delete all <b>%1</b> files in trash?
+!FILEBROWSER_DELETEDIALOG_SELECTED;Are you sure you want to <b>permanently</b> delete the selected <b>%1</b> files?
+!FILEBROWSER_DELETEDIALOG_SELECTEDINCLPROC;Are you sure you want to <b>permanently</b> delete the selected <b>%1</b> files, <b>including</b> a queue-processed version?
+!FILEBROWSER_EMPTYTRASHHINT;<b>Permanently</b> delete all files in trash.
 !FILEBROWSER_EXTPROGMENU;Open with
 !FILEBROWSER_OPENDEFAULTVIEWER;Windows default viewer (queue-processed)
 !FILEBROWSER_POPUPCOLORLABEL0;Label: None
@@ -886,13 +885,15 @@ ZOOMPANEL_ZOOMOUT;Kicsinyítés <b>-</b>
 !FILEBROWSER_POPUPRANK3;Rank 3 ***
 !FILEBROWSER_POPUPRANK4;Rank 4 ****
 !FILEBROWSER_POPUPRANK5;Rank 5 *****
+!FILEBROWSER_POPUPREMOVE;Delete permanently
+!FILEBROWSER_POPUPREMOVEINCLPROC;Delete permanently, including queue-processed version
 !FILEBROWSER_RANK1_TOOLTIP;Rank 1 *\nShortcut: <b>Shift-1</b>
 !FILEBROWSER_RANK2_TOOLTIP;Rank 2 *\nShortcut: <b>Shift-2</b>
 !FILEBROWSER_RANK3_TOOLTIP;Rank 3 *\nShortcut: <b>Shift-3</b>
 !FILEBROWSER_RANK4_TOOLTIP;Rank 4 *\nShortcut: <b>Shift-4</b>
 !FILEBROWSER_RANK5_TOOLTIP;Rank 5 *\nShortcut: <b>Shift-5</b>
 !FILEBROWSER_RESETDEFAULTPROFILE;Reset to default
-!FILEBROWSER_SHOWNOTTRASHHINT;Show only non-deleted images.
+!FILEBROWSER_SHOWNOTTRASHHINT;Show only images not in trash.
 !FILEBROWSER_SHOWORIGINALHINT;Show only original images.\n\nWhen several images exist with the same filename but different extensions, the one considered original is the one whose extension is nearest the top of the parsed extensions list in Preferences > File Browser > Parsed Extensions.
 !FILEBROWSER_UNRANK_TOOLTIP;Unrank.\nShortcut: <b>Shift-0</b>
 !FILECHOOSER_FILTER_ANY;All files
@@ -1247,6 +1248,8 @@ ZOOMPANEL_ZOOMOUT;Kicsinyítés <b>-</b>
 !HISTORY_MSG_DEHAZE_STRENGTH;Dehaze - Strength
 !HISTORY_MSG_DUALDEMOSAIC_AUTO_CONTRAST;Dual demosaic - Auto threshold
 !HISTORY_MSG_DUALDEMOSAIC_CONTRAST;Dual demosaic - Contrast threshold
+!HISTORY_MSG_FILMNEGATIVE_ENABLED;Film Negative
+!HISTORY_MSG_FILMNEGATIVE_VALUES;Film negative values
 !HISTORY_MSG_HISTMATCHING;Auto-matched tone curve
 !HISTORY_MSG_ICM_OUTPUT_PRIMARIES;Output - Primaries
 !HISTORY_MSG_ICM_OUTPUT_TEMP;Output - ICC-v4 illuminant D
@@ -1384,6 +1387,7 @@ ZOOMPANEL_ZOOMOUT;Kicsinyítés <b>-</b>
 !PARTIALPASTE_COLORTONING;Color toning
 !PARTIALPASTE_DEHAZE;Haze removal
 !PARTIALPASTE_EQUALIZER;Wavelet levels
+!PARTIALPASTE_FILMNEGATIVE;Film Negative
 !PARTIALPASTE_FILMSIMULATION;Film simulation
 !PARTIALPASTE_FLATFIELDCLIPCONTROL;Flat-field clip control
 !PARTIALPASTE_GRADIENT;Graduated filter
@@ -1656,7 +1660,7 @@ ZOOMPANEL_ZOOMOUT;Kicsinyítés <b>-</b>
 !TP_COLORAPP_SURROUND_DARK;Dark
 !TP_COLORAPP_SURROUND_DIM;Dim
 !TP_COLORAPP_SURROUND_EXDARK;Extremly Dark (Cutsheet)
-!TP_COLORAPP_SURROUND_TOOLTIP;Changes tones and colors to take into account the viewing conditions of the output device.\n\n<b>Average</b>: Average light environment (standard). The image will not change.\n\n<b>Dim</b>: Dim environment (TV). The image will become slighty dark.\n\n<b>Dark</b>: Dark environment (projector). The image will become more dark.\n\n<b>Extremly Dark</b>: Extremly dark environment (cutsheet). The image will become very dark.
+!TP_COLORAPP_SURROUND_TOOLTIP;Changes tones and colors to take into account the viewing conditions of the output device.\n\n<b>Average</b>: Average light environment (standard). The image will not change.\n\n<b>Dim</b>: Dim environment (TV). The image will become slightly dark.\n\n<b>Dark</b>: Dark environment (projector). The image will become more dark.\n\n<b>Extremly Dark</b>: Extremly dark environment (cutsheet). The image will become very dark.
 !TP_COLORAPP_TCMODE_BRIGHTNESS;Brightness
 !TP_COLORAPP_TCMODE_CHROMA;Chroma
 !TP_COLORAPP_TCMODE_COLORF;Colorfulness
@@ -1815,6 +1819,12 @@ ZOOMPANEL_ZOOMOUT;Kicsinyítés <b>-</b>
 !TP_EXPOSURE_TCMODE_WEIGHTEDSTD;Weighted Standard
 !TP_EXPOS_BLACKPOINT_LABEL;Raw Black Points
 !TP_EXPOS_WHITEPOINT_LABEL;Raw White Points
+!TP_FILMNEGATIVE_BLUE;Blue ratio
+!TP_FILMNEGATIVE_GREEN;Reference exponent (contrast)
+!TP_FILMNEGATIVE_GUESS_TOOLTIP;Calculate exponents by picking two neutral reference spots in the image; one white (light gray) and one black (dark gray). The order does not matter. The exponents will be updated after the second spot is picked.
+!TP_FILMNEGATIVE_LABEL;Film Negative
+!TP_FILMNEGATIVE_PICK;Pick white and black spots
+!TP_FILMNEGATIVE_RED;Red ratio
 !TP_FILMSIMULATION_LABEL;Film Simulation
 !TP_FILMSIMULATION_SLOWPARSEDIR;RawTherapee is configured to look for Hald CLUT images, which are used for the Film Simulation tool, in a folder which is taking too long to load.\nGo to Preferences > Image Processing > Film Simulation\nto see which folder is being used. You should either point RawTherapee to a folder which contains only Hald CLUT images and nothing more, or to an empty folder if you don't want to use the Film Simulation tool.\n\nRead the Film Simulation article in RawPedia for more information.\n\nDo you want to cancel the scan now?
 !TP_FILMSIMULATION_STRENGTH;Strength

@@ -93,11 +93,8 @@ FILEBROWSER_COLORLABEL_TOOLTIP;Färgetikett\n\nAnvänd menyn eller kortkommandon
 FILEBROWSER_COPYPROFILE;Kopiera profil
 FILEBROWSER_CURRENT_NAME;Nuvarande namn:
 FILEBROWSER_DARKFRAME;Svartbild
-FILEBROWSER_DELETEDLGLABEL;Bekräftelse vid borttag
-FILEBROWSER_DELETEDLGMSG;Är du säker på att du vill ta bort de valda %1 filerna?
-FILEBROWSER_DELETEDLGMSGINCLPROC;Är du säker på att du vill ta bort de valda filerna %1 OCH den behandlade versionen?
+FILEBROWSER_DELETEDIALOG_HEADER;Bekräftelse vid borttag
 FILEBROWSER_EMPTYTRASH;Töm papperskorgen
-FILEBROWSER_EMPTYTRASHHINT;Ta bort papperskorgens filer permanent
 FILEBROWSER_EXTPROGMENU;Öppna med
 FILEBROWSER_FLATFIELD;Plattfält
 FILEBROWSER_MOVETODARKFDIR;Flytta till katalogen för svartbilder
@@ -131,8 +128,6 @@ FILEBROWSER_POPUPRANK2;Betyg 2 **
 FILEBROWSER_POPUPRANK3;Betyg 3 ***
 FILEBROWSER_POPUPRANK4;Betyg 4 ****
 FILEBROWSER_POPUPRANK5;Betyg 5 *****
-FILEBROWSER_POPUPREMOVE;Ta bort från filsystemet
-FILEBROWSER_POPUPREMOVEINCLPROC;Ta bort från filsystemet inkl. den behandlade
 FILEBROWSER_POPUPRENAME;Byt namn
 FILEBROWSER_POPUPSELECTALL;Markera allt
 FILEBROWSER_POPUPTRASH;Flytta till papperskorgen
@@ -158,7 +153,6 @@ FILEBROWSER_SHOWDIRHINT;Återställ alla sökfilter.\nKortkommando: <b>d</b>
 FILEBROWSER_SHOWEDITEDHINT;Visa redigerade bilder.\nKortkommando: <b>7</b>
 FILEBROWSER_SHOWEDITEDNOTHINT;Visa ickeredigerade bilder.\nKortkommando: <b>6</b>
 FILEBROWSER_SHOWEXIFINFO;Visa EXIF-information.\nKortkommando: <b>i</b>\n\nKortkommando i enkelbildsläget: <b>Alt-i</b>
-FILEBROWSER_SHOWNOTTRASHHINT;Visa endast ej borttagna bilder.
 FILEBROWSER_SHOWORIGINALHINT;Visa endast ursprungliga bilder.\n\nNär flera bilder finns med samma filnamn men med olika filändelser så anses den bild vara urpsrungsbilden som har sin ändelse närmst toppen i listan över filändelser i Inställningar > Filbläddrare > Hanterade filändelser
 FILEBROWSER_SHOWRANK1HINT;Visa bilder med betyg 1.\nKortkommando: <b>1</b>
 FILEBROWSER_SHOWRANK2HINT;Visa bilder med betyg 2.\nKortkommando: <b>2</b>
@@ -1769,7 +1763,14 @@ ZOOMPANEL_ZOOMOUT;Förminska.\nKortkommando: <b>-</b>
 !FILEBROWSER_BROWSEPATHBUTTONHINT;Click to open specified path, reload folder and apply "find" keywords.
 !FILEBROWSER_CACHECLEARFROMFULL;Clear all including cached profiles
 !FILEBROWSER_CACHECLEARFROMPARTIAL;Clear all except cached profiles
+!FILEBROWSER_DELETEDIALOG_ALL;Are you sure you want to <b>permanently</b> delete all <b>%1</b> files in trash?
+!FILEBROWSER_DELETEDIALOG_SELECTED;Are you sure you want to <b>permanently</b> delete the selected <b>%1</b> files?
+!FILEBROWSER_DELETEDIALOG_SELECTEDINCLPROC;Are you sure you want to <b>permanently</b> delete the selected <b>%1</b> files, <b>including</b> a queue-processed version?
+!FILEBROWSER_EMPTYTRASHHINT;<b>Permanently</b> delete all files in trash.
+!FILEBROWSER_POPUPREMOVE;Delete permanently
+!FILEBROWSER_POPUPREMOVEINCLPROC;Delete permanently, including queue-processed version
 !FILEBROWSER_RESETDEFAULTPROFILE;Reset to default
+!FILEBROWSER_SHOWNOTTRASHHINT;Show only images not in trash.
 !GENERAL_CURRENT;Current
 !GENERAL_RESET;Reset
 !GENERAL_SAVE_AS;Save as...
@@ -1862,6 +1863,8 @@ ZOOMPANEL_ZOOMOUT;Förminska.\nKortkommando: <b>-</b>
 !HISTORY_MSG_DEHAZE_STRENGTH;Dehaze - Strength
 !HISTORY_MSG_DUALDEMOSAIC_AUTO_CONTRAST;Dual demosaic - Auto threshold
 !HISTORY_MSG_DUALDEMOSAIC_CONTRAST;Dual demosaic - Contrast threshold
+!HISTORY_MSG_FILMNEGATIVE_ENABLED;Film Negative
+!HISTORY_MSG_FILMNEGATIVE_VALUES;Film negative values
 !HISTORY_MSG_HISTMATCHING;Auto-matched tone curve
 !HISTORY_MSG_ICM_OUTPUT_PRIMARIES;Output - Primaries
 !HISTORY_MSG_ICM_OUTPUT_TEMP;Output - ICC-v4 illuminant D
@@ -1971,6 +1974,7 @@ ZOOMPANEL_ZOOMOUT;Förminska.\nKortkommando: <b>-</b>
 !PARTIALPASTE_ADVANCEDGROUP;Advanced Settings
 !PARTIALPASTE_COLORTONING;Color toning
 !PARTIALPASTE_DEHAZE;Haze removal
+!PARTIALPASTE_FILMNEGATIVE;Film Negative
 !PARTIALPASTE_FLATFIELDCLIPCONTROL;Flat-field clip control
 !PARTIALPASTE_LOCALCONTRAST;Local contrast
 !PARTIALPASTE_METADATA;Metadata mode
@@ -2116,6 +2120,12 @@ ZOOMPANEL_ZOOMOUT;Förminska.\nKortkommando: <b>-</b>
 !TP_EXPOSURE_CLAMPOOG;Clip out-of-gamut colors
 !TP_EXPOSURE_HISTMATCHING;Auto-Matched Tone Curve
 !TP_EXPOSURE_HISTMATCHING_TOOLTIP;Automatically adjust sliders and curves (except exposure compensation) to match the look of the embedded JPEG thumbnail.
+!TP_FILMNEGATIVE_BLUE;Blue ratio
+!TP_FILMNEGATIVE_GREEN;Reference exponent (contrast)
+!TP_FILMNEGATIVE_GUESS_TOOLTIP;Calculate exponents by picking two neutral reference spots in the image; one white (light gray) and one black (dark gray). The order does not matter. The exponents will be updated after the second spot is picked.
+!TP_FILMNEGATIVE_LABEL;Film Negative
+!TP_FILMNEGATIVE_PICK;Pick white and black spots
+!TP_FILMNEGATIVE_RED;Red ratio
 !TP_FLATFIELD_CLIPCONTROL;Clip control
 !TP_FLATFIELD_CLIPCONTROL_TOOLTIP;Clip control avoids clipped highlights caused by applying the flat field. If there are already clipped highlights before applying the flat field, clip control can lead to color cast.
 !TP_ICM_APPLYBASELINEEXPOSUREOFFSET_TOOLTIP;Employ the embedded DCP baseline exposure offset. The setting is only available if the selected DCP has one.

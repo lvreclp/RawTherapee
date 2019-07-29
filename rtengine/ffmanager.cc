@@ -230,7 +230,6 @@ void ffInfo::updateRawImage()
 }
 
 // ************************* class FFManager *********************************
-
 FFManager &FFManager::getInstance() {
     static FFManager instance;
     return instance;
@@ -238,6 +237,9 @@ FFManager &FFManager::getInstance() {
 
 void FFManager::init( const Glib::ustring &pathname )
 {
+    if (pathname.empty()) {
+        return;
+    }
     std::vector<Glib::ustring> names;
 
     const auto dir = Gio::File::create_for_path (pathname);

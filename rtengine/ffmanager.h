@@ -16,10 +16,14 @@
  *  You should have received a copy of the GNU General Public License
  *  along with RawTherapee.  If not, see <http://www.gnu.org/licenses/>.
  */
-#include <string>
-#include <glibmm/ustring.h>
-#include <map>
+#pragma once
+
 #include <cmath>
+#include <map>
+#include <string>
+
+#include <glibmm/ustring.h>
+
 #include "rawimage.h"
 
 namespace rtengine
@@ -90,7 +94,6 @@ private:
     ffInfo *find( const std::string &mak, const std::string &mod, const std::string &len, double focal, double apert, time_t t );
 
     typedef std::multimap<std::string, ffInfo> ffList_t;
-    typedef std::map<std::string, std::list<badPix> > bpList_t;
     ffList_t ffList;
     bool initialized;
     Glib::ustring currentPath;

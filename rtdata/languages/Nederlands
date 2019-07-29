@@ -122,11 +122,8 @@ FILEBROWSER_COLORLABEL_TOOLTIP;Kleur label\n\nGebruik keuzemenu of nSneltoets:\n
 FILEBROWSER_COPYPROFILE;Kopieer profiel
 FILEBROWSER_CURRENT_NAME;Huidige naam:
 FILEBROWSER_DARKFRAME;Donkerframe
-FILEBROWSER_DELETEDLGLABEL;Bevestiging bestand verwijderen
-FILEBROWSER_DELETEDLGMSG;Weet u zeker dat u de geselecteerde %1 bestanden wilt verwijderen?
-FILEBROWSER_DELETEDLGMSGINCLPROC;Weet u zeker dat u de %1 geselecteerde bestanden wilt verwijderen *inclusief* de versies van de verwerkingsrij?
+FILEBROWSER_DELETEDIALOG_HEADER;Bevestiging bestand verwijderen
 FILEBROWSER_EMPTYTRASH;Leeg prullenbak
-FILEBROWSER_EMPTYTRASHHINT;Verwijder bestanden in prullenbak voorgoed
 FILEBROWSER_EXTPROGMENU;Open met
 FILEBROWSER_FLATFIELD;Vlakveld
 FILEBROWSER_MOVETODARKFDIR;Verplaats naar map met donkerframes
@@ -160,8 +157,6 @@ FILEBROWSER_POPUPRANK2;Waardering 2 **
 FILEBROWSER_POPUPRANK3;Waardering 3 ***
 FILEBROWSER_POPUPRANK4;Waardering 4 ****
 FILEBROWSER_POPUPRANK5;Waardering 5 *****
-FILEBROWSER_POPUPREMOVE;Verwijder van bestandssysteem
-FILEBROWSER_POPUPREMOVEINCLPROC;Verwijder (met bestand in verwerkingsrij)
 FILEBROWSER_POPUPRENAME;Hernoem
 FILEBROWSER_POPUPSELECTALL;Alles selecteren
 FILEBROWSER_POPUPTRASH;Verplaats naar prullenbak
@@ -188,7 +183,6 @@ FILEBROWSER_SHOWDIRHINT;Verwijder alle filters.\nSneltoets: <b>d</b>
 FILEBROWSER_SHOWEDITEDHINT;Toon bewerkte foto's\nSneltoets: <b>7</b>
 FILEBROWSER_SHOWEDITEDNOTHINT;Toon niet-bewerkte foto's\nSneltoets: <b>6</b>
 FILEBROWSER_SHOWEXIFINFO;Toon EXIF-info
-FILEBROWSER_SHOWNOTTRASHHINT;Toon alleen niet-verwijderde foto's.
 FILEBROWSER_SHOWORIGINALHINT;Toon alleen originele afbeelding.\n\nAls er meerdere afbeeldingen zijn met dezelfde naam maar verschillende extensies, dan wordt de afbeelding waarvan de extensie het hoogst staat in de lijst met extensies in Voorkeuren > Bestandsnavigator > Extensies
 FILEBROWSER_SHOWRANK1HINT;Toon foto's met 1 ster.\nSneltoets: <b>1</b>
 FILEBROWSER_SHOWRANK2HINT;Toon foto's met 2 sterren.\nSneltoets: <b>2</b>
@@ -1980,6 +1974,13 @@ ZOOMPANEL_ZOOMOUT;Zoom uit\nSneltoets: <b>-</b>
 !FILEBROWSER_BROWSEPATHBUTTONHINT;Click to open specified path, reload folder and apply "find" keywords.
 !FILEBROWSER_CACHECLEARFROMFULL;Clear all including cached profiles
 !FILEBROWSER_CACHECLEARFROMPARTIAL;Clear all except cached profiles
+!FILEBROWSER_DELETEDIALOG_ALL;Are you sure you want to <b>permanently</b> delete all <b>%1</b> files in trash?
+!FILEBROWSER_DELETEDIALOG_SELECTED;Are you sure you want to <b>permanently</b> delete the selected <b>%1</b> files?
+!FILEBROWSER_DELETEDIALOG_SELECTEDINCLPROC;Are you sure you want to <b>permanently</b> delete the selected <b>%1</b> files, <b>including</b> a queue-processed version?
+!FILEBROWSER_EMPTYTRASHHINT;<b>Permanently</b> delete all files in trash.
+!FILEBROWSER_POPUPREMOVE;Delete permanently
+!FILEBROWSER_POPUPREMOVEINCLPROC;Delete permanently, including queue-processed version
+!FILEBROWSER_SHOWNOTTRASHHINT;Show only images not in trash.
 !GENERAL_CURRENT;Current
 !GENERAL_RESET;Reset
 !GENERAL_SAVE_AS;Save as...
@@ -2035,6 +2036,8 @@ ZOOMPANEL_ZOOMOUT;Zoom uit\nSneltoets: <b>-</b>
 !HISTORY_MSG_DEHAZE_STRENGTH;Dehaze - Strength
 !HISTORY_MSG_DUALDEMOSAIC_AUTO_CONTRAST;Dual demosaic - Auto threshold
 !HISTORY_MSG_DUALDEMOSAIC_CONTRAST;Dual demosaic - Contrast threshold
+!HISTORY_MSG_FILMNEGATIVE_ENABLED;Film Negative
+!HISTORY_MSG_FILMNEGATIVE_VALUES;Film negative values
 !HISTORY_MSG_HISTMATCHING;Auto-matched tone curve
 !HISTORY_MSG_ICM_OUTPUT_PRIMARIES;Output - Primaries
 !HISTORY_MSG_ICM_OUTPUT_TEMP;Output - ICC-v4 illuminant D
@@ -2118,6 +2121,7 @@ ZOOMPANEL_ZOOMOUT;Zoom uit\nSneltoets: <b>-</b>
 !OPTIONS_DEFRAW_MISSING;The default profile for <b>raw photos</b> could not be found or is not set.\n\nPlease check your profiles' directory, it may be missing or damaged.\n\n"<b>%1</b>" will be used instead.
 !PARTIALPASTE_ADVANCEDGROUP;Advanced Settings
 !PARTIALPASTE_DEHAZE;Haze removal
+!PARTIALPASTE_FILMNEGATIVE;Film Negative
 !PARTIALPASTE_LOCALCONTRAST;Local contrast
 !PARTIALPASTE_METADATA;Metadata mode
 !PARTIALPASTE_PREPROCESS_PDAFLINESFILTER;PDAF lines filter
@@ -2229,6 +2233,12 @@ ZOOMPANEL_ZOOMOUT;Zoom uit\nSneltoets: <b>-</b>
 !TP_EXPOSURE_CLAMPOOG;Clip out-of-gamut colors
 !TP_EXPOSURE_HISTMATCHING;Auto-Matched Tone Curve
 !TP_EXPOSURE_HISTMATCHING_TOOLTIP;Automatically adjust sliders and curves (except exposure compensation) to match the look of the embedded JPEG thumbnail.
+!TP_FILMNEGATIVE_BLUE;Blue ratio
+!TP_FILMNEGATIVE_GREEN;Reference exponent (contrast)
+!TP_FILMNEGATIVE_GUESS_TOOLTIP;Calculate exponents by picking two neutral reference spots in the image; one white (light gray) and one black (dark gray). The order does not matter. The exponents will be updated after the second spot is picked.
+!TP_FILMNEGATIVE_LABEL;Film Negative
+!TP_FILMNEGATIVE_PICK;Pick white and black spots
+!TP_FILMNEGATIVE_RED;Red ratio
 !TP_ICM_WORKING_TRC;Tone response curve:
 !TP_ICM_WORKING_TRC_CUSTOM;Custom
 !TP_ICM_WORKING_TRC_GAMMA;Gamma
